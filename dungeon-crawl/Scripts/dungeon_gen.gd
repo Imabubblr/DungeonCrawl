@@ -7,6 +7,14 @@ var wall_tile_bottom := Vector2i(3,0)
 var wall_tile_top := Vector2i(3,4)
 var wall_tile_left := Vector2i(5,2)
 var wall_tile_right := Vector2i(0,2)
+
+var top_right_inner := Vector2i(0,5)
+var top_left_inner := Vector2i(3,5)
+
+var top_right_out := Vector2i(5,0)
+var top_left_out := Vector2i(0,0)
+var bot_right_out := Vector2i(5,4)
+var bot_left_out := Vector2i(0,4)
 #endregion
 
 #region Dungeon Generation Parameters
@@ -229,18 +237,40 @@ func draw_dungeon():
 			if grid[x][y] == 0:
 				tile_map_layer.set_cell(tile_position, 1, floor_tile)
 			elif grid[x][y] == 1:
-				if y < HEIGHT - 1 and grid[x][y + 1] == 0:
+				# Check for floor positions first
+				var floor_above = y > 0 and grid[x][y - 1] == 0
+				var floor_below = y < HEIGHT - 1 and grid[x][y + 1] == 0
+				var floor_left = x > 0 and grid[x - 1][y] == 0
+				var floor_right = x < WIDTH - 1 and grid[x + 1][y] == 0
+
+				# Check diagonal floor tiles for accurate corner selection.
+				var floor_top_left = x > 0 and y > 0 and grid[x - 1][y - 1] == 0
+				var floor_top_right = x < WIDTH - 1 and y > 0 and grid[x + 1][y - 1] == 0
+				var floor_bottom_left = x > 0 and y < HEIGHT - 1 and grid[x - 1][y + 1] == 0
+				var floor_bottom_right = x < WIDTH - 1 and y < HEIGHT - 1 and grid[x + 1][y + 1] == 0
+
+				if floor_above and floor_right:
+					tile_map_layer.set_cell(tile_position, 1, top_left_inner)
+				elif floor_above and floor_left:
+					tile_map_layer.set_cell(tile_position, 1, top_right_inner)
+				elif floor_below:
 					tile_map_layer.set_cell(tile_position, 1, wall_tile_bottom)
-				elif y > 0 and grid[x][y - 1] == 0:
+				elif floor_above:
 					tile_map_layer.set_cell(tile_position, 1, wall_tile_top)
-				elif x < WIDTH - 1 and grid[x + 1][y] == 0:
+				elif floor_right:
 					tile_map_layer.set_cell(tile_position, 1, wall_tile_right)
-				elif x > 0 and grid[x - 1][y] == 0:
+				elif floor_left:
 					tile_map_layer.set_cell(tile_position, 1, wall_tile_left)
+				elif floor_top_left:
+					tile_map_layer.set_cell(tile_position, 1, bot_right_out)
+				elif floor_top_right:
+					tile_map_layer.set_cell(tile_position, 1, bot_left_out)
+				elif floor_bottom_left:
+					tile_map_layer.set_cell(tile_position, 1, top_right_out)
+				elif floor_bottom_right:
+					tile_map_layer.set_cell(tile_position, 1, top_left_out)
 				else:
 					tile_map_layer.set_cell(tile_position, 1, Vector2i(8, 7))
-			else:
-				tile_map_layer.set_cell(tile_position, 1, Vector2i(-1, -1))
 
 func reset_dungeon():
 	if tile_map_layer:
